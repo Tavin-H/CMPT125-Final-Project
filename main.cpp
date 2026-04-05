@@ -48,6 +48,7 @@ void init_board() {
 }
 
 void print_board() {
+  cout << "\n\n\n\n\n\n\n\n\n";
   // Need to make 1x1 into 3x3
   for (int row = 5; row > -1; row--) {
     // Loops through each row
@@ -166,14 +167,22 @@ void drop_piece(int column, Piece piece) {
 }
 
 int main() {
-  bool running;
+  bool running = true;
+  // bool redAnvilPlayed = false;
+  // bool blueAnvilPlayed = false;
   string input;
+  int turnsTaken = 0;
   init_board();
   // board[0][0] = 'X';
   // drop_piece(0, RedAnvil);
   while (running) {
     print_board();
+    cout << "\n"
+         << (turnsTaken % 2 == 0 ? "Red" : "Blue") << "'s turn! " << endl;
     cin >> input;
+    int position = stoi(input) - 1;
+    drop_piece(position, turnsTaken % 2 == 0 ? RedNormal : BlueNormal);
+    turnsTaken++;
   }
   cout << "working!";
   return 0;
