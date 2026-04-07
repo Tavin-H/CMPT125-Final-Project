@@ -11,7 +11,7 @@ what operating system(s) (e.g. Windows, macOS, Linux), compiler(s) (e.g. g++,
 clang++, etc.), and editor/IDE(s) (e.g. VS Code, Sublime Text, etc.) did you
 use?
 Tavin - macOS, clang++, neovim
-Anton - Linux, g++, neovim
+Anton - Linux Mint, g++, VScode
 
 ## Extra Features
 
