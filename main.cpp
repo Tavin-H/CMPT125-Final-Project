@@ -4,7 +4,7 @@
 using namespace std;
 
 //--------------GAME SETTINGS---------------
-bool use_colour = true;
+bool use_colour = false;
 //------------------------------------------
 
 /*
@@ -106,10 +106,7 @@ void print_board() {
             } else {
               cout << "x x x ";
             }
-          } else {
-            cout << ". . . ";
-          }
-          if (board[column][row] == 'o') {
+          } else if (board[column][row] == 'o') {
             if (z == 0 || z == 2) {
               cout << "o o o ";
             } else {
@@ -166,15 +163,35 @@ void drop_piece(int column, Piece piece) {
 }
 
 int main() {
-  bool running;
+  bool running = false;
+  //bool botmode; // determines whether player is facing the bot or not
   string input;
   init_board();
+  //// Manual testing stuff ////
   // board[0][0] = 'X';
-  // drop_piece(0, RedAnvil);
+  // drop_piece(0, RedNormal);
+  // drop_piece(0, BlueNormal);
+  // print_board();
+  //// end of manual testing area ////
+  bool validInput = false;
+  do {
+  cout << "\nWelcome to Tic-Tac-Toe! \n";
+  cout << "Select who you're going up against: \n   (1): Another Player\n   (2): A Bot\n\n";
+  cout << "Select by entering the corresponding number: ";
+  cin >> input; cout << endl;
+  if(input == "1" || input == "2" || input == "quit") {
+    validInput = true;
+    running = true;
+  }
+  } while(!validInput);
+
   while (running) {
     print_board();
     cin >> input;
+    if(input == "quit") {
+      running = false;
+    }
   }
-  cout << "working!";
+  cout << "working! \n";
   return 0;
 }
