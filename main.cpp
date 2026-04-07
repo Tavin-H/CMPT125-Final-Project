@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <locale>
 #include <string>
@@ -23,7 +24,16 @@ Rows (height) are 0-5 (increasing going up)
 X = Red, O = Blue
  */
 
-enum Piece { RedNormal, BlueNormal, RedAnvil, BlueAnvil };
+enum Piece {
+  RedNormal,
+  BlueNormal,
+  RedAnvil,
+  BlueAnvil,
+};
+enum Player {
+  Blue,
+  Red,
+};
 
 char *col1 = new char[6];
 char *col2 = new char[6];
@@ -163,31 +173,102 @@ void drop_piece(int column, Piece piece) {
   return;
 }
 
+// Will move along a direction, counting the steps taken until it reaches a tile
+// without a players piece
+int traverse_and_count(int startx, int starty, int stepx, int stepy,
+                       Player player) {
+  cout << "traversing" << stepx << stepy << endl;
+  char *searching_for =
+      (player == Red) ? new char[2]{'x', 'X'} : new char[2]{'o', 'O'};
+  int count = 0;
+
+  char current_tile_val = board[startx][starty];
+  while (find(searching_for, searching_for + 2, current_tile_val) !=
+         (searching_for + 2)) {
+    count++;
+
+    // advance
+    int nextx = startx + stepx * count;
+    int nexty = starty + stepy * count;
+    if (nextx > 6 || nextx < 0) {
+      break;
+    }
+    if (nexty > 5 || nexty < 0) {
+      break;
+    }
+    current_tile_val =
+        board[startx + stepx * (count + 1)][starty + stepy * (count + 1)];
+  }
+  delete[] searching_for;
+  return count;
+}
+bool _check_straights(Player player) {
+  int right = traverse_and_count(0, 0, 1, 0, player);
+  int left = traverse_and_count(0, 0, -1, 0, player);
+  int up = traverse_and_count(0, 0, 0, 1, player);
+  int down = traverse_and_count(0, 0, 0, -1, player);
+  if (right + left >= 4) {
+    return true;
+  } else if (up + down >= 4) {
+    return true;
+  } else {
+    return false;
+  }
+}
+bool _check_diagonals(Player player) {
+  int right_up = traverse_and_count(0, 0, 1, 1, player);
+  int right_down = traverse_and_count(0, 0, 1, -1, player);
+  int left_up = traverse_and_count(0, 0, -1, 1, player);
+  int left_down = traverse_and_count(0, 0, -1, -1, player);
+  if (right_up + left_down >= 4) {
+    return true;
+  } else if (left_up + right_down >= 4) {
+    return true;
+  } else {
+    return false;
+  }
+}
+bool check_win(Player player) {
+  return _check_diagonals(player) || _check_straights(player);
+}
+
 int main() {
   // bool redAnvilPlayed = false;
   // bool blueAnvilPlayed = false;
   bool running = false;
-  //bool botmode; // determines whether player is facing the bot or not
+  // bool botmode; // determines whether player is facing the bot or not
   string input;
   int turnsTaken = 0;
   init_board();
+
   //// Manual testing stuff ////
-  // board[0][0] = 'X';
+  board[0][0] = 'X';
+  board[1][1] = 'X';
+  board[2][2] = 'X';
+  board[3][3] = 'X';
+  if (check_win(Red)) {
+    cout << "RED WON" << endl;
+  } else {
+    cout << "Red lost..." << endl;
+  }
   // drop_piece(0, RedNormal);
-  // drop_piece(0, BlueNormal);
-  // print_board();
+  //  drop_piece(0, BlueNormal);
+  //  print_board();
   //// end of manual testing area ////
+
   bool validInput = false;
   do {
-  cout << "\nWelcome to Connect Four \n";
-  cout << "Select who you're going up against: \n   (1): Another Player\n   (2): A Bot\n\n";
-  cout << "Select by entering the corresponding number: ";
-  cin >> input; cout << endl;
-  if(input == "1" || input == "2" || input == "quit") {
-    validInput = true;
-    running = true;
-  }
-  } while(!validInput);
+    cout << "\nWelcome to Connect Four \n";
+    cout << "Select who you're going up against: \n   (1): Another Player\n   "
+            "(2): A Bot\n\n";
+    cout << "Select by entering the corresponding number: ";
+    cin >> input;
+    cout << endl;
+    if (input == "1" || input == "2" || input == "quit") {
+      validInput = true;
+      running = true;
+    }
+  } while (!validInput);
 
   while (running) {
     print_board();
@@ -197,10 +278,11 @@ int main() {
     int position = stoi(input) - 1;
     drop_piece(position, turnsTaken % 2 == 0 ? RedNormal : BlueNormal);
     turnsTaken++;
-    if(input == "quit") {
+    if (input == "quit") {
       running = false;
     }
   }
   cout << "working! \n";
   return 0;
 }
+// REMEMBER TO DEALLOCATE BOARD
