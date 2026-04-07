@@ -179,7 +179,7 @@ int main() {
   //// end of manual testing area ////
   bool validInput = false;
   do {
-  cout << "\nWelcome to Tic-Tac-Toe! \n";
+  cout << "\nWelcome to Connect Four \n";
   cout << "Select who you're going up against: \n   (1): Another Player\n   (2): A Bot\n\n";
   cout << "Select by entering the corresponding number: ";
   cin >> input; cout << endl;
