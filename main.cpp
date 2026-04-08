@@ -24,6 +24,20 @@ Rows (height) are 0-5 (increasing going up)
 X = Red, O = Blue
  */
 
+string GameOverString = R"(
+
+      _____          _____        ______  _______        ______                 _____     ____      ____      ______        _____
+  ___|\    \     ___|\    \      |      \/       \   ___|\     \           ____|\    \   |    |    |    | ___|\     \   ___|\    \
+ /    /\    \   /    /\    \    /          /\     \ |     \     \         /     /\    \  |    |    |    ||     \     \ |    |\    \
+|    |  |____| |    |  |    |  /     /\   / /\     ||     ,_____/|       /     /  \    \ |    |    |    ||     ,_____/||    | |    |
+|    |   _____ |    |__|    | /     /\ \_/ / /    /||     \--'\_|/      |     |    |    ||    |    |    ||     \--'\_|/|    |/____/
+|    |  |     ||    .--.    ||     |  \|_|/ /    / ||     /___/|        |     |    |    ||    |    |    ||     /___/|  |    |\    \
+|    |  |__,  ||    |  |    ||     |       |    |  ||     \____|\       |\     \  /    /||\    \  /    /||     \____|\ |    | |    |
+|\ ___\___/  /||____|  |____||\____\       |____|  /|____ '     /|      | \_____\/____/ || \ ___\/___ / ||____ '     /||____| |____|
+| |   /____ / ||    |  |    || |    |      |    | / |    /_____/ |       \ |    ||    | / \ |   ||   | / |    /_____/ ||    | |    |
+ \|___|    | / |____|  |____| \|____|      |____|/  |____|     | /        \|____||____|/   \|___||___|/  |____|     | /|____| |____|
+      |____|/                                            |_____|/                                             |_____|/              )";
+
 enum Piece {
   RedNormal,
   BlueNormal,
@@ -206,7 +220,6 @@ bool drop_piece(int column, Piece piece) {
       if (column_array[i] == ' ') {
         column_array[i] = 'x';
         if (check_win(Red, column, i)) {
-          cout << "GAME OVERRRR" << endl;
           won = true;
         }
         break;
@@ -218,7 +231,6 @@ bool drop_piece(int column, Piece piece) {
       if (column_array[i] == ' ') {
         column_array[i] = 'o';
         if (check_win(Blue, column, i)) {
-          cout << "GAME OVERRRR" << endl;
           won = true;
         }
         break;
@@ -231,7 +243,6 @@ bool drop_piece(int column, Piece piece) {
     }
     column_array[0] = 'X';
     if (check_win(Red, column, 0)) {
-      cout << "GAME OVERRRR" << endl;
       won = true;
     }
     break;
@@ -241,20 +252,6 @@ bool drop_piece(int column, Piece piece) {
     }
     column_array[0] = 'O';
     if (check_win(Blue, column, 0)) {
-      cout << "GAME OVERRRR" << endl;
-      cout << R"(      
-			_____          _____        ______  _______        ______                 _____     ____      ____      ______        _____   
-  ___|\    \     ___|\    \      |      \/       \   ___|\     \           ____|\    \   |    |    |    | ___|\     \   ___|\    \  
- /    /\    \   /    /\    \    /          /\     \ |     \     \         /     /\    \  |    |    |    ||     \     \ |    |\    \ 
-|    |  |____| |    |  |    |  /     /\   / /\     ||     ,_____/|       /     /  \    \ |    |    |    ||     ,_____/||    | |    |
-|    |   _____ |    |__|    | /     /\ \_/ / /    /||     \--'\_|/      |     |    |    ||    |    |    ||     \--'\_|/|    |/____/ 
-|    |  |	    ||    .--.    ||     |  \|_|/ /    / ||     /___/|        |     |    |    ||    |    |    ||     /___/|  |    |\    \ 
-|    |  |__,  ||    |  |    ||     |       |    |  ||     \____|\       |\     \  /    /||\    \  /    /||     \____|\ |    | |    |
-|\ ___\___/  /||____|  |____||\____\       |____|  /|____ '     /|      | \_____\/____/ || \ ___\/___ / ||____ '     /||____| |____|
-| |   /____ / ||    |  |    || |    |      |    | / |    /_____/ |       \ |    ||    | / \ |   ||   | / |    /_____/ ||    | |    |
- \|___|    | / |____|  |____| \|____|      |____|/  |____|     | /        \|____||____|/   \|___||___|/  |____|     | /|____| |____|
-      |____|/                                            |_____|/                                             |_____|/              )"
-           << endl;
       won = true;
     }
     break;
@@ -303,7 +300,10 @@ board[3][3] = 'X';
          << (turnsTaken % 2 == 0 ? "Red" : "Blue") << "'s turn! " << endl;
     cin >> input;
     int position = stoi(input) - 1;
-    drop_piece(position, turnsTaken % 2 == 0 ? RedNormal : BlueNormal);
+    if(drop_piece(position, turnsTaken % 2 == 0 ? RedNormal : BlueNormal)) {
+      cout << GameOverString << endl;
+      running = false;
+    }
     turnsTaken++;
     if (input == "quit") {
       running = false;
