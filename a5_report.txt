@@ -2,8 +2,9 @@
 
 ## Names of Team Members
 Tavin Hartwood - tlh17@sfu.ca - 301648489
+Anton Bulatov - adb18@sfu.ca - 301654487
 
- full names, SFU email addresses, and SFU student numbers of all team members
+full names, SFU email addresses, and SFU student numbers of all team members
 
 ## Platform and Tools
 
@@ -15,16 +16,23 @@ Anton - Linux Mint, g++, VScode
 
 ## Extra Features
 
-if your program has any extra or special features, tell us about them here
+We have a boolean called use_colour that, when set to true, makes the pieces
+have colour; however, apparently not all terminals support the colour, so it
+may not work for certain users.
+
+The game over text is made with ASCII art, to see it properly, please resize
+your terminal to fit the text.
 
 ## Limitations and Known Bugs
 
-list all known bugs here, including features that are missing or do not work as
-expected
+The bot isn't very smart and doesn't see any moves ahead, it can't detect when
+the player could win with an anvil, not that the bot could stop the player anyways,
+because the anvil isn't a very well designed custom piece.
 
 ## Help and References
 
-what people and tools helped you; if you used AI, how did you use it?
+I, Anton Bulatov, used AI for syntax help and weird bug fixes, none of my code's ideas
+or structure was made with AI.
 
 ## Statement of Originality
 

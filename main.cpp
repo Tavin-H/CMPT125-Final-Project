@@ -9,14 +9,6 @@ bool use_colour = false;
 //------------------------------------------
 
 /*
-  _    _ _____            _   _ _______ ____  _   _
- | |  | |_   _|     /\   | \ | |__   __/ __ \| \ | |
- | |__| | | |      /  \  |  \| |  | | | |  | |  \| |
- |  __  | | |     / /\ \ | . ` |  | | | |  | | . ` |
- | |  | |_| |_   / ____ \| |\  |  | | | |__| | |\  |
- |_|  |_|_____| /_/    \_\_| \_|  |_|  \____/|_| \_|
-
-
            - CONVENTIONS -
 Columns are 0-6 (increasing to the right)
 Rows (height) are 0-5 (increasing going up)
@@ -49,32 +41,28 @@ enum Player {
   Red,
 };
 
-char col1[6] = {};
-char col2[6] = {};
-char col3[6] = {};
-char col4[6] = {};
-char col5[6] = {};
-char col6[6] = {};
-char col7[6] = {};
-
-char **board = new char *[7]{col1, col2, col3, col4, col5, col6, col7};
+char board[7][6];
+char boardcopy[7][6];
 
 void init_board() {
-  for (int i = 0; i < 6; i++) {
-    col1[i] = ' ';
-    col2[i] = ' ';
-    col3[i] = ' ';
-    col4[i] = ' ';
-    col5[i] = ' ';
-    col6[i] = ' ';
-    col7[i] = ' ';
+  for (int i = 0; i < 7; i++) {
+    for (int j = 0; j < 6; j++) {
+      board[i][j] = ' ';
+    }
+  }
+}
+
+void copy_board(char copyfrom[7][6], char copyto[7][6]) {
+  for (int i = 0; i < 7; i++) {
+    for (int j = 0; j < 6; j++) {
+      copyto[i][j] = copyfrom[i][j];
+    }
   }
 }
 
 // Will move along a direction, counting the steps taken until it reaches a tile
 // without a players piece
-int traverse_and_count(int startx, int starty, int stepx, int stepy,
-                       Player player) {
+int traverse_and_count(int startx, int starty, int stepx, int stepy, Player player) {
   // cout << "traversing" << stepx << stepy << endl;
   const char *searching_for = (player == Red) ? "xX" : "oO";
   // Check first one
@@ -149,7 +137,9 @@ cout << "Straights";
 }
 
 void print_board() {
-  cout << "\n\n\n\n\n\n\n\n\n";
+  cout << "\n\n\n\n\n\n";
+  cout << "Red is x" << endl;
+  cout << "Blue is o" << endl;
   // Need to make 1x1 into 3x3
   for (int row = 5; row > -1; row--) {
     // Loops through each row
@@ -344,41 +334,76 @@ board[3][3] = 'X';
     cout << "\n"
          << (turnsTaken % 2 == 0 ? "Red" : "Blue") << "'s turn! " << endl;
     bool valid_input = false;
-    while(!valid_input) {
-    cout << "Choose a piece: Regular (r) Anvil (a)" << endl;
-    cin >> input;
-    if (input == "quit") {
-      valid_input = true;
-      running = false;
-    } else if (input == "r") {
-      current_piece = turnsTaken % 2 == 0 ? RedNormal : BlueNormal;
-      valid_input = true;
-    } else if (input == "a") {
-      if (turnsTaken % 2 == 0) { // Red if true
-        if (redAnvilPlayed) {
-          cout << "You already dropped an Anvil piece! Placing Regular" << endl;
-          current_piece = RedNormal;
-        } else {
-          current_piece = RedAnvil;
-          redAnvilPlayed = true;
-        }
-      } else {
-        if (blueAnvilPlayed) {
-          cout << "You already dropped an Anvil piece! Placing Regular" << endl;
-          current_piece = BlueNormal;
-        } else {
-          current_piece = BlueAnvil;
-          blueAnvilPlayed = true;
-        }
+    if(botmode && turnsTaken % 2 == 1) {
+      current_piece = BlueNormal;
+      int dice = rand() % 10;
+      if (!blueAnvilPlayed && dice == 7) {
+        current_piece = BlueAnvil;
       }
       valid_input = true;
-    } else {
-      cout << endl << "Invalid input" << endl;
     }
+    while(!valid_input) {
+      cout << "Choose a piece: Regular (r) Anvil (a)" << endl;
+      cin >> input;
+      if (input == "quit") {
+        valid_input = true;
+        running = false;
+      } else if (input == "r") {
+        current_piece = turnsTaken % 2 == 0 ? RedNormal : BlueNormal;
+        valid_input = true;
+      } else if (input == "a") {
+        if (turnsTaken % 2 == 0) { // Red if true
+          if (redAnvilPlayed) {
+            cout << "You already dropped an Anvil piece! Placing Regular" << endl;
+            current_piece = RedNormal;
+          } else {
+            current_piece = RedAnvil;
+            redAnvilPlayed = true;
+          }
+        } else {
+          if (blueAnvilPlayed) {
+            cout << "You already dropped an Anvil piece! Placing Regular" << endl;
+            current_piece = BlueNormal;
+          } else {
+            current_piece = BlueAnvil;
+            blueAnvilPlayed = true;
+          }
+        }
+        valid_input = true;
+      } else {
+        cout << endl << "Invalid input" << endl;
+      }
     }
     valid_input = false;
-    if (running) {
-      while(!valid_input) {
+    if(botmode && turnsTaken % 2 == 1) {
+      for (int i = 0; i < 7; i++) {
+        copy_board(board, boardcopy);
+        if (drop_piece(i, RedNormal)) { // Prevent player from winning
+          input = to_string(i + 1);
+          valid_input = true;
+        }
+        copy_board(boardcopy, board);
+      }
+      for (int i = 0; i < 7; i++) {
+        copy_board(board, boardcopy);
+        if (drop_piece(i, current_piece)) { // Winning itself (higher priority)
+          input = to_string(i + 1);
+          valid_input = true;
+        }
+        copy_board(boardcopy, board);
+      }
+      while (!valid_input) {
+        int current = rand() % 7;
+        if (board[current][5] == ' ') {
+          input = to_string(current + 1);
+          valid_input = true;
+        }
+      }
+    }
+    if (!running) {
+      break;
+    }
+    while(!valid_input) {
       cout << "Which column would you like to place in? (enter a number between "
               "1-7)"
             << endl;
@@ -387,21 +412,45 @@ board[3][3] = 'X';
         running = false;
         valid_input = true;
       } else if (stoi(input) < 8 && stoi(input) > 0) {
-        valid_input = true;
+        if (board[stoi(input)-1][5] == ' ') {
+          valid_input = true;
+        } else {
+          cout << endl << "Column is full!" << endl;
+        }
       } else {
         cout << endl << "Invalid Input" << endl;
       }
-      }
-      if (running) {
-      int position = stoi(input) - 1;
-      if (drop_piece(position, current_piece)) {
-        cout << GameOverString << endl;
-        running = false;
-      }
-      turnsTaken++;
+    }
+    if (botmode) {
+      if (current_piece == BlueNormal) {
+        cout << endl << "The bot chose to place a normal piece in column " << input;
+      } else if (current_piece == BlueAnvil) {
+        cout << endl << "The bot chose to place an anvil piece in column " << input;
       }
     }
+    if (!running) {
+      break;
+    }
+    int position = stoi(input) - 1;
+    if (drop_piece(position, current_piece)) {
+      print_board();
+      cout << GameOverString << endl;
+      cout << "Game over! " << (turnsTaken % 2 == 0 ? "Red" : "Blue") << " Won!" << endl;
+      running = false;
+    }
+    bool tie = true;
+    for (int i = 0; i < 7; i++) {
+      if (board[i][5] == ' ') {
+        tie = false;
+      }
+    }
+    if (tie) {
+      cout << GameOverString << endl;
+      cout << "It's a tie!";
+      running = false;
+    }
+    turnsTaken++;
   }
-  cout << "working! \n";
+  // cout << "working! \n";
   return 0;
 }
