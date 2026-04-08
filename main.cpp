@@ -5,7 +5,7 @@
 using namespace std;
 
 //--------------GAME SETTINGS---------------
-bool use_colour = true;
+bool use_colour = false;
 //------------------------------------------
 
 /*
@@ -214,6 +214,22 @@ void print_board() {
             } else {
               cout << "o o o ";
             }
+          } else if (board[column][row] == 'X') {
+            if (z == 0) {
+              cout << "╔ x ╗ ";
+            } else if (z == 1) {
+              cout << "╚ ╦ ╝ ";
+            } else {
+              cout << "╚ ╩ ╝ ";
+            }
+          } else if (board[column][row] == 'O') {
+            if (z == 0) {
+              cout << "╔ o ╗ ";
+            } else if (z == 1) {
+              cout << "╚ ╦ ╝ ";
+            } else {
+              cout << "╚ ╩ ╝ ";
+            }
           } else {
             cout << ". . . ";
           }
@@ -280,7 +296,7 @@ int main() {
   bool redAnvilPlayed = false;
   bool blueAnvilPlayed = false;
   bool running = false;
-  // bool botmode; // determines whether player is facing the bot or not
+  bool botmode = false;
   string input;
   int turnsTaken = 0;
   init_board();
@@ -309,6 +325,17 @@ board[3][3] = 'X';
       validInput = true;
       running = true;
     }
+    if (input == "2") {
+      botmode = true;
+    }
+    // thing to make the compiler shut up
+    if (botmode) { 
+      cout << "awesome";
+    }
+
+    if (input == "quit") {
+      running = false;
+    }
   } while (!validInput);
 
   Piece current_piece;
@@ -316,12 +343,17 @@ board[3][3] = 'X';
     print_board();
     cout << "\n"
          << (turnsTaken % 2 == 0 ? "Red" : "Blue") << "'s turn! " << endl;
-    cout << "Chose a piece: Regular (r) Anvil (a)" << endl;
+    bool valid_input = false;
+    while(!valid_input) {
+    cout << "Choose a piece: Regular (r) Anvil (a)" << endl;
     cin >> input;
-    if (input == "r") {
+    if (input == "quit") {
+      valid_input = true;
+      running = false;
+    } else if (input == "r") {
       current_piece = turnsTaken % 2 == 0 ? RedNormal : BlueNormal;
-    }
-    if (input == "a") {
+      valid_input = true;
+    } else if (input == "a") {
       if (turnsTaken % 2 == 0) { // Red if true
         if (redAnvilPlayed) {
           cout << "You already dropped an Anvil piece! Placing Regular" << endl;
@@ -339,19 +371,35 @@ board[3][3] = 'X';
           blueAnvilPlayed = true;
         }
       }
+      valid_input = true;
+    } else {
+      cout << endl << "Invalid input" << endl;
     }
-    cout << "Which column would you like to place in? (enter a number between "
-            "1-7)"
-         << endl;
-    cin >> input;
-    int position = stoi(input) - 1;
-    if (drop_piece(position, current_piece)) {
-      cout << GameOverString << endl;
-      running = false;
     }
-    turnsTaken++;
-    if (input == "quit") {
-      running = false;
+    valid_input = false;
+    if (running) {
+      while(!valid_input) {
+      cout << "Which column would you like to place in? (enter a number between "
+              "1-7)"
+            << endl;
+      cin >> input;
+      if (input == "quit") {
+        running = false;
+        valid_input = true;
+      } else if (stoi(input) < 8 && stoi(input) > 0) {
+        valid_input = true;
+      } else {
+        cout << endl << "Invalid Input" << endl;
+      }
+      }
+      if (running) {
+      int position = stoi(input) - 1;
+      if (drop_piece(position, current_piece)) {
+        cout << GameOverString << endl;
+        running = false;
+      }
+      turnsTaken++;
+      }
     }
   }
   cout << "working! \n";
