@@ -110,10 +110,12 @@ bool _check_straights(Player player, int startx, int starty) {
   int left = traverse_and_count(startx, starty, -1, 0, player);
   int up = traverse_and_count(startx, starty, 0, 1, player);
   int down = traverse_and_count(startx, starty, 0, -1, player);
-  cout << "Right: " << right << endl;
-  cout << "Left: " << left << endl;
-  cout << "Up: " << up << endl;
-  cout << "Down: " << down << endl;
+  /*
+cout << "Right: " << right << endl;
+cout << "Left: " << left << endl;
+cout << "Up: " << up << endl;
+cout << "Down: " << down << endl;
+  */
   if (right + left >= 3) {
     return true;
   } else if (up + down >= 3) {
@@ -275,8 +277,8 @@ bool drop_piece(int column, Piece piece) {
   return won;
 }
 int main() {
-  // bool redAnvilPlayed = false;
-  // bool blueAnvilPlayed = false;
+  bool redAnvilPlayed = false;
+  bool blueAnvilPlayed = false;
   bool running = false;
   // bool botmode; // determines whether player is facing the bot or not
   string input;
@@ -309,13 +311,41 @@ board[3][3] = 'X';
     }
   } while (!validInput);
 
+  Piece current_piece;
   while (running) {
     print_board();
     cout << "\n"
          << (turnsTaken % 2 == 0 ? "Red" : "Blue") << "'s turn! " << endl;
+    cout << "Chose a piece: Regular (r) Anvil (a)" << endl;
+    cin >> input;
+    if (input == "r") {
+      current_piece = turnsTaken % 2 == 0 ? RedNormal : BlueNormal;
+    }
+    if (input == "a") {
+      if (turnsTaken % 2 == 0) { // Red if true
+        if (redAnvilPlayed) {
+          cout << "You already dropped an Anvil piece! Placing Regular" << endl;
+          current_piece = RedNormal;
+        } else {
+          current_piece = RedAnvil;
+          redAnvilPlayed = true;
+        }
+      } else {
+        if (blueAnvilPlayed) {
+          cout << "You already dropped an Anvil piece! Placing Regular" << endl;
+          current_piece = BlueNormal;
+        } else {
+          current_piece = BlueAnvil;
+          blueAnvilPlayed = true;
+        }
+      }
+    }
+    cout << "Which column would you like to place in? (enter a number between "
+            "1-7)"
+         << endl;
     cin >> input;
     int position = stoi(input) - 1;
-    if (drop_piece(position, turnsTaken % 2 == 0 ? RedNormal : BlueNormal)) {
+    if (drop_piece(position, current_piece)) {
       cout << GameOverString << endl;
       running = false;
     }
