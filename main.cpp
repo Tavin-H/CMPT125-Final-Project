@@ -5,7 +5,7 @@
 using namespace std;
 
 //--------------GAME SETTINGS---------------
-bool use_colour = false;
+bool use_colour = true;
 //------------------------------------------
 
 /*
@@ -49,13 +49,13 @@ enum Player {
   Red,
 };
 
-char *col1 = new char[6];
-char *col2 = new char[6];
-char *col3 = new char[6];
-char *col4 = new char[6];
-char *col5 = new char[6];
-char *col6 = new char[6];
-char *col7 = new char[6];
+char col1[6] = {};
+char col2[6] = {};
+char col3[6] = {};
+char col4[6] = {};
+char col5[6] = {};
+char col6[6] = {};
+char col7[6] = {};
 
 char **board = new char *[7]{col1, col2, col3, col4, col5, col6, col7};
 
@@ -76,13 +76,20 @@ void init_board() {
 int traverse_and_count(int startx, int starty, int stepx, int stepy,
                        Player player) {
   // cout << "traversing" << stepx << stepy << endl;
-  char *searching_for =
-      (player == Red) ? new char[2]{'x', 'X'} : new char[2]{'o', 'O'};
+  const char *searching_for = (player == Red) ? "xX" : "oO";
+  // Check first one
   int count = 0;
-
-  char current_tile_val = board[startx][starty];
-  while (find(searching_for, searching_for + 2, current_tile_val) !=
-         (searching_for + 2)) {
+  int nextx = startx + stepx;
+  int nexty = starty + stepy;
+  if (nextx > 6 || nextx < 0) {
+    return 0;
+  }
+  if (nexty > 5 || nexty < 0) {
+    return 0;
+  }
+  char current_tile_val = board[startx + stepx][starty + stepy];
+  while (current_tile_val == searching_for[0] ||
+         current_tile_val == searching_for[1]) {
     count++;
 
     // advance
@@ -94,10 +101,8 @@ int traverse_and_count(int startx, int starty, int stepx, int stepy,
     if (nexty > 5 || nexty < 0) {
       break;
     }
-    current_tile_val =
-        board[startx + stepx * (count + 1)][starty + stepy * (count + 1)];
+    current_tile_val = board[nextx][nexty];
   }
-  delete[] searching_for;
   return count;
 }
 bool _check_straights(Player player, int startx, int starty) {
@@ -105,9 +110,13 @@ bool _check_straights(Player player, int startx, int starty) {
   int left = traverse_and_count(startx, starty, -1, 0, player);
   int up = traverse_and_count(startx, starty, 0, 1, player);
   int down = traverse_and_count(startx, starty, 0, -1, player);
-  if (right + left >= 4) {
+  cout << "Right: " << right << endl;
+  cout << "Left: " << left << endl;
+  cout << "Up: " << up << endl;
+  cout << "Down: " << down << endl;
+  if (right + left >= 3) {
     return true;
-  } else if (up + down >= 4) {
+  } else if (up + down >= 3) {
     return true;
   } else {
     return false;
@@ -118,15 +127,21 @@ bool _check_diagonals(Player player, int startx, int starty) {
   int right_down = traverse_and_count(startx, starty, 1, -1, player);
   int left_up = traverse_and_count(startx, starty, -1, 1, player);
   int left_down = traverse_and_count(startx, starty, -1, -1, player);
-  if (right_up + left_down >= 4) {
+  if (right_up + left_down >= 3) {
     return true;
-  } else if (left_up + right_down >= 4) {
+  } else if (left_up + right_down >= 3) {
     return true;
   } else {
     return false;
   }
 }
 bool check_win(Player player, int startx, int starty) {
+  /*
+if (_check_diagonals(player, startx, starty))
+cout << "Diagnonals";
+if (_check_straights(player, startx, starty))
+cout << "Straights";
+          */
   return _check_diagonals(player, startx, starty) ||
          _check_straights(player, startx, starty);
 }
@@ -300,7 +315,7 @@ board[3][3] = 'X';
          << (turnsTaken % 2 == 0 ? "Red" : "Blue") << "'s turn! " << endl;
     cin >> input;
     int position = stoi(input) - 1;
-    if(drop_piece(position, turnsTaken % 2 == 0 ? RedNormal : BlueNormal)) {
+    if (drop_piece(position, turnsTaken % 2 == 0 ? RedNormal : BlueNormal)) {
       cout << GameOverString << endl;
       running = false;
     }
@@ -312,4 +327,3 @@ board[3][3] = 'X';
   cout << "working! \n";
   return 0;
 }
-// REMEMBER TO DEALLOCATE BOARD
