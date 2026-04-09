@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <locale>
+#include <random>
 #include <string>
 using namespace std;
 
@@ -62,7 +63,8 @@ void copy_board(char copyfrom[7][6], char copyto[7][6]) {
 
 // Will move along a direction, counting the steps taken until it reaches a tile
 // without a players piece
-int traverse_and_count(int startx, int starty, int stepx, int stepy, Player player) {
+int traverse_and_count(int startx, int starty, int stepx, int stepy,
+                       Player player) {
   // cout << "traversing" << stepx << stepy << endl;
   const char *searching_for = (player == Red) ? "xX" : "oO";
   // Check first one
@@ -287,9 +289,17 @@ int main() {
   bool blueAnvilPlayed = false;
   bool running = false;
   bool botmode = false;
+  string player1name;
+  string player2name;
   string input;
+  bool goingfirst = true;
   int turnsTaken = 0;
   init_board();
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> distr06(0, 6);
+  std::uniform_int_distribution<> distr010(0, 9);
+  std::uniform_int_distribution<> distr01(0, 1);
 
   //// Manual testing stuff ////
   /*
@@ -315,14 +325,36 @@ board[3][3] = 'X';
       validInput = true;
       running = true;
     }
+    if (input == "1") {
+      cout << "What is Player 1's name?" << endl;
+      cin >> player1name;
+      cout << "What is Player 2's name?" << endl;
+      cin >> player2name;
+      input = "1";
+    }
     if (input == "2") {
       botmode = true;
+      string answer;
+      cout << "would you like to go first (1), second (2), or random (3)?"
+           << endl;
+      cin >> answer;
+      while (!(answer != "1" || answer != "2" || answer != "3")) {
+        cout << "Please enter a valid number" << endl;
+        cin >> answer;
+      }
+      if (answer == "1") {
+        goingfirst = true;
+      } else if (answer == "2") {
+        goingfirst = false;
+      } else {
+        int first = distr01(gen);
+        if (first == 0) {
+          goingfirst = true;
+        } else {
+          goingfirst = false;
+        }
+      }
     }
-    // thing to make the compiler shut up
-    if (botmode) { 
-      cout << "awesome";
-    }
-
     if (input == "quit") {
       running = false;
     }
@@ -331,51 +363,72 @@ board[3][3] = 'X';
   Piece current_piece;
   while (running) {
     print_board();
-    cout << "\n"
-         << (turnsTaken % 2 == 0 ? "Red" : "Blue") << "'s turn! " << endl;
+    if (botmode) {
+
+      cout << "\n"
+           << ((turnsTaken + !goingfirst) % 2 == 0 ? "Player" : "Computer")
+           << "'s turn! " << endl;
+    } else {
+
+      cout << "\n"
+           << (turnsTaken % 2 == 0 ? player1name : player2name) << "'s turn! "
+           << endl;
+    }
     bool valid_input = false;
-    if(botmode && turnsTaken % 2 == 1) {
+    if (botmode && turnsTaken % 2 == goingfirst) {
       current_piece = BlueNormal;
-      int dice = rand() % 10;
+      // int dice = rand() % 10;
+      int dice = distr010(gen);
       if (!blueAnvilPlayed && dice == 7) {
         current_piece = BlueAnvil;
+        blueAnvilPlayed = true;
       }
       valid_input = true;
     }
-    while(!valid_input) {
-      cout << "Choose a piece: Regular (r) Anvil (a)" << endl;
-      cin >> input;
-      if (input == "quit") {
-        valid_input = true;
-        running = false;
-      } else if (input == "r") {
-        current_piece = turnsTaken % 2 == 0 ? RedNormal : BlueNormal;
-        valid_input = true;
-      } else if (input == "a") {
-        if (turnsTaken % 2 == 0) { // Red if true
-          if (redAnvilPlayed) {
-            cout << "You already dropped an Anvil piece! Placing Regular" << endl;
-            current_piece = RedNormal;
+    while (!valid_input) {
+
+      if (!(botmode && !goingfirst && turnsTaken == 0)) {
+
+        cout << "Choose a piece: Regular (r) Anvil (a)" << endl;
+        cin >> input;
+        if (input == "quit") {
+          valid_input = true;
+          running = false;
+        } else if (input == "r") {
+          current_piece =
+              turnsTaken % 2 == !goingfirst ? RedNormal : BlueNormal;
+          valid_input = true;
+        } else if (input == "a") {
+          if (turnsTaken % 2 == !goingfirst) { // Red if true
+            if (redAnvilPlayed) {
+              cout << "You already dropped an Anvil piece! Placing Regular"
+                   << endl;
+              current_piece = RedNormal;
+            } else {
+              current_piece = RedAnvil;
+              redAnvilPlayed = true;
+            }
           } else {
-            current_piece = RedAnvil;
-            redAnvilPlayed = true;
+            if (blueAnvilPlayed) {
+              cout << "You already dropped an Anvil piece! Placing Regular"
+                   << endl;
+              current_piece = BlueNormal;
+            } else {
+              current_piece = BlueAnvil;
+              blueAnvilPlayed = true;
+            }
           }
+          valid_input = true;
         } else {
-          if (blueAnvilPlayed) {
-            cout << "You already dropped an Anvil piece! Placing Regular" << endl;
-            current_piece = BlueNormal;
-          } else {
-            current_piece = BlueAnvil;
-            blueAnvilPlayed = true;
-          }
+          cout << endl << "Invalid input" << endl;
         }
-        valid_input = true;
       } else {
-        cout << endl << "Invalid input" << endl;
+        cout << "COMPUTER GOING FIRST" << endl;
+        valid_input = true;
       }
     }
     valid_input = false;
-    if(botmode && turnsTaken % 2 == 1) {
+    if (botmode && turnsTaken % 2 == goingfirst) {
       for (int i = 0; i < 7; i++) {
         copy_board(board, boardcopy);
         if (drop_piece(i, RedNormal)) { // Prevent player from winning
@@ -393,7 +446,9 @@ board[3][3] = 'X';
         copy_board(boardcopy, board);
       }
       while (!valid_input) {
-        int current = rand() % 7;
+        // int current = rand() % 7;
+
+        int current = distr06(gen);
         if (board[current][5] == ' ') {
           input = to_string(current + 1);
           valid_input = true;
@@ -403,16 +458,20 @@ board[3][3] = 'X';
     if (!running) {
       break;
     }
-    while(!valid_input) {
-      cout << "Which column would you like to place in? (enter a number between "
-              "1-7)"
-            << endl;
+    while (!valid_input) {
+      cout
+          << "Which column would you like to place in? (enter a number between "
+             "1-7)"
+          << endl;
       cin >> input;
       if (input == "quit") {
         running = false;
         valid_input = true;
+      } else if (input.empty() || !isdigit(input[0])) {
+        cout << endl << "Please enter a number" << endl;
+
       } else if (stoi(input) < 8 && stoi(input) > 0) {
-        if (board[stoi(input)-1][5] == ' ') {
+        if (board[stoi(input) - 1][5] == ' ') {
           valid_input = true;
         } else {
           cout << endl << "Column is full!" << endl;
@@ -423,9 +482,11 @@ board[3][3] = 'X';
     }
     if (botmode) {
       if (current_piece == BlueNormal) {
-        cout << endl << "The bot chose to place a normal piece in column " << input;
+        cout << endl
+             << "The bot chose to place a normal piece in column " << input;
       } else if (current_piece == BlueAnvil) {
-        cout << endl << "The bot chose to place an anvil piece in column " << input;
+        cout << endl
+             << "The bot chose to place an anvil piece in column " << input;
       }
     }
     if (!running) {
@@ -435,7 +496,17 @@ board[3][3] = 'X';
     if (drop_piece(position, current_piece)) {
       print_board();
       cout << GameOverString << endl;
-      cout << "Game over! " << (turnsTaken % 2 == 0 ? "Red" : "Blue") << " Won!" << endl;
+      if (botmode) {
+
+        cout << "Game over! "
+             << (turnsTaken % 2 == goingfirst ? "Computer" : "Player")
+             << " Won!" << endl;
+      } else {
+
+        cout << "Game over! "
+             << (turnsTaken % 2 == 0 ? player1name : player2name) << " Won!"
+             << endl;
+      }
       running = false;
     }
     bool tie = true;
@@ -451,6 +522,5 @@ board[3][3] = 'X';
     }
     turnsTaken++;
   }
-  // cout << "working! \n";
   return 0;
 }

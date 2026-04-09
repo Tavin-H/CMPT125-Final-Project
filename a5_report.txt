@@ -33,6 +33,9 @@ because the anvil isn't a very well designed custom piece.
 
 I, Anton Bulatov, used AI for syntax help and weird bug fixes, none of my code's ideas
 or structure was made with AI.
+ 
+I, Tavin Hartwood, used c++ documentation as well as minor usage of AI for syntax. I also used AI (Gemini) for weird bug fixes, none of my code's ideas or structure was made with AI.
+
 
 ## Statement of Originality
 
